@@ -5,11 +5,15 @@ import os
 import pathlib
 import shutil
 import subprocess
+from docutils import DataError
 import pandas as pd
 from datetime import datetime
 import pymzml
 import numpy as np
-
+from typing import List, Str, Any
+from pathlib import Path
+from tqdm import tqdm
+DataError
 from scipy.sparse import coo_matrix
 
 import multiprocessing
@@ -214,7 +218,7 @@ class MatchReport:
                 except Exception as e:
                     print (e)
 
-                    raise DataError(f'Noise and baseline data could not be extracted from {name}. Please make sure the mzML files contains this data. Aborting')
+                    raise ValueError(f'Noise and baseline data could not be extracted from {name}. Please make sure the mzML files contains this data. Aborting')
 
                 intensity_parameters = spectrum._get_encoding_parameters('intensity array')
                 intensity = spectrum._decode(*intensity_parameters)
@@ -279,7 +283,7 @@ class MatchReport:
                         top_scan = self.join_top_scans(top_scans)
 
                     
-                    out_df.append(get_top_scan)
+                    out_df.append(top_scan)
 
                 statistics['identified'] += 1
             else:
