@@ -3,14 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to ActionsPlayground's documentation!
+Installation
 =============================================
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
-Processing
+Command Line Usage
 =============================================
 
 .. argparse::
@@ -18,9 +14,5 @@ Processing
    :func: generate_parser
    :prog: FeatureDetection
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+Integration with Search Pipelines
+============================================

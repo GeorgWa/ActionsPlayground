@@ -54,3 +54,6 @@ html_static_path = ['_static']
 # -- Options for Latex output -------------------------------------------------
 
 latex_documents = [('index', 'doc.tex', project, author, 'manual')]
+latex_elements = {
+  'extraclassoptions': 'openany,oneside'
+}
