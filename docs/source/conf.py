@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.abspath('../../src'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'ActionsPlayground'
+project = 'DO-MS-Processing'
 copyright = '2022, Georg Wallmann'
 author = 'Georg Wallmann'
 
@@ -50,3 +50,7 @@ html_theme = 'alabaster'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+# -- Options for Latex output -------------------------------------------------
+
+latex_documents = [('index', 'doc.tex', project, author, 'manual')]
