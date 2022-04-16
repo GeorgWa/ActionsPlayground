@@ -59,6 +59,239 @@ def generate_parser():
 
     return parser
 
+class MatchReport:
+    # labels as found in the Precursor.Id
+    def __init__(self, 
+                mzml_list: List, 
+                report: Str, 
+                scan_window = 5, 
+                mass_error = 15,
+                isotope_start = 0,
+                isotope_stop = 3,
+                add_isotopes = False,
+                keep_all = False,
+                resolution = 70000): 
+        """
+        The class can be used to match a DIA-NN report to an centroided or profile mode mzml file.
+        After matching peaks to a certain region, features and data can be extracted.
+
+        Processing order and steps for customization:
+
+        1. The report dataframe is loaded and filtered based on the filter_report(report) function.
+
+        2. The report dataframe is split into sub dataframes which are generated based on the Run column.
+
+        3. Precursors are then matched to the mzml file based on the retation time. 
+        For every precursors a list of potential hits is created based on the defined scan window, mass error and isotopes.
+        For every hit the function build_scan_features(self, scan, scan_id, mz_id, precursor_id, j, mz) is called.
+
+        4. The top hit is selected based on the intensity field in the feature dict. 
+        If add_isotopes is set, all hits for different isotopes from the same scan as the top hit are passed to join_top_scans(self, feature_list) to combine the features.
+
+        Args:
+            mzml_list (list(str)): List of mzml input files. The file name has to match the Run column in the DIA-NN report.
+
+            report (str): Location of the DIA-NN report.
+
+            mass_error (float): Mass error in parts per million
+
+            scan_window (int): Number of windows adjecent to the closest retention time.
+
+            keep_all (bool): Keep all hits in the selected window.
+        """ 
+
+        self.mzml_list = mzml_list
+        self.report = report
+
+        # processing parameters
+        self.scan_window = scan_window
+        self.mass_error = mass_error
+        self.isotope_start = isotope_start
+        self.isotope_stop = isotope_stop
+        self.add_isotopes = add_isotopes
+        self.resolution = resolution
+        self.keep_all = keep_all
+
+    def __call__(self, *args: Any, **kwds: Any) -> Any:
+
+        # get report.tsv
+        report = pd.read_csv(self.report, sep='\t')
+        report = self.filter_report(report)
+        
+        dfs = []
+        for input_mzml in self.mzml_list:
+            name = Path(input_mzml).stem
+
+            # create subframe for the specific mzml
+            subframe = report[report['Run'] == name]
+
+            # load mzml file
+            dfs.append(self.match_mzml(input_mzml, subframe))
+        return pd.concat(dfs)
+
+    def filter_report(self, report_df):
+        """
+        Apply filtering on the whole report, for example Ms1.Area
+        """
+
+        return report_df[report_df['Ms1.Area'] > 0]
+
+    def build_scan_features(self, scan, scan_id, scan_window_center, mz_id, j, report_row):
+        report_row = report_row.copy()
+
+        noise = scan['noise'][mz_id]
+        intensity = scan['spectrum_intensity'][mz_id]
+        sn = intensity/noise
+        copy_number = sn * 3.5 * np.sqrt(240000/self.resolution)
+
+        report_row.update({
+                'Scan.Id':scan_id,
+                'Isotope': j,
+                'Intensity': intensity,
+                'Noise': noise,
+                'Baseline': scan['baseline'][mz_id],
+                'mz': scan['spectrum_mz'][mz_id],
+                'Mass.Error': scan['delta_mz'][mz_id],
+                'sn': sn,
+                'Copy.Number': copy_number
+                })
+
+        return report_row
+
+    def join_top_scans(self, feature_list):
+
+        return {'Datapoints': feature_list[0]['Datapoints'],
+                'Precursor.Id': feature_list[0]['Precursor.Id'],
+                'Scan.Id':feature_list[0]['Scan.Id'],
+                'Num.Isotopes': len(feature_list),
+                'Intensity': np.mean([feature['Intensity'] for feature in feature_list]),
+                'Noise': np.mean([feature['Noise'] for feature in feature_list]),
+                'Baseline': np.mean([feature['Baseline'] for feature in feature_list]),
+                'Mass.Error': np.mean([feature['Mass.Error'] for feature in feature_list]),
+                'sn': np.mean([feature['sn'] for feature in feature_list]),
+                'Copy.Number': np.sum([feature['Copy.Number'] for feature in feature_list])
+                }
+
+    def match_mzml(self, mzml, subframe):
+        name = Path(mzml).stem
+        run = pymzml.run.Reader(mzml)
+        
+        # generate RT index for MS1's
+        indexed_ms1 = []
+
+        print('Indexing Ms1 spectra')
+
+        indexed_ms1 = []
+
+        # initiate statistics
+        statistics = {'precursors' : 0, 'identified': 0, 'failed': 0}
+
+        # iterate all ms1 scans and extract retention times
+        for i, spectrum in tqdm(enumerate(run)):
+            ms_level = spectrum.ms_level
+
+            if ms_level == 1:
+
+                # Collect data from mzml
+                row_dict = {'index': i,
+                            'retention_time': spectrum['MS:1000016'],
+                            'fill_time': spectrum['MS:1000927'],
+                            'tic': spectrum['MS:1000285']}
+
+                # collect different types of spectra
+                try:
+                    baseline_parameters = spectrum._get_encoding_parameters('sampled noise baseline array')
+                    baseline = spectrum._decode(*baseline_parameters)
+                    row_dict['baseline'] = np.array(baseline)
+
+                    noise_parameters = spectrum._get_encoding_parameters('sampled noise intensity array')
+                    noise = spectrum._decode(*noise_parameters)
+                    row_dict['noise'] = np.array(noise)
+
+                    mz_parameters = spectrum._get_encoding_parameters('sampled noise m/z array')
+                    mz = spectrum._decode(*mz_parameters)
+                    row_dict['mz'] = np.array(mz)
+                except Exception as e:
+                    print (e)
+
+                    raise DataError(f'Noise and baseline data could not be extracted from {name}. Please make sure the mzML files contains this data. Aborting')
+
+                intensity_parameters = spectrum._get_encoding_parameters('intensity array')
+                intensity = spectrum._decode(*intensity_parameters)
+                row_dict['spectrum_intensity'] = np.array(intensity)
+
+                rmz_parameters = spectrum._get_encoding_parameters('m/z array')
+                rmz = spectrum._decode(*rmz_parameters)
+                row_dict['spectrum_mz'] = np.array(rmz)
+
+                indexed_ms1.append(row_dict)
+
+        # create rt indexing for matching mzml
+        rt_index = np.array([scan['retention_time'] for scan in indexed_ms1])
+        
+        out_df = []
+
+        for i, row_dict in tqdm(zip(range(len(subframe)), subframe.to_dict(orient="records"))):
+            delta_rt = np.abs(rt_index - row_dict['RT'])
+            ms_idx = np.argmin(delta_rt)
+
+            # define lower and upper indices
+            ms_idx_lower = ms_idx - self.scan_window if (ms_idx - self.scan_window) >= 0 else 0
+            ms_idx_upper = ms_idx + self.scan_window + 1 if (ms_idx + self.scan_window +1) < len(rt_index) else len(rt_index)-1
+
+            sn_arr = []
+
+            # Match scan and mz
+            for scan_idx in range(ms_idx_lower, ms_idx_upper):
+                scan = indexed_ms1[scan_idx]
+
+                for j in range(self.isotope_start, self.isotope_stop):
+                    isotope_mz = row_dict['Precursor.Mz'] + j/row_dict['Precursor.Charge']
+
+                    scan['delta_mz'] = np.abs(scan['spectrum_mz'] - isotope_mz)/isotope_mz*1e6
+                    mz_idx = np.flatnonzero(scan['delta_mz'] < self.mass_error)
+
+                    for id in mz_idx:
+                        sn_arr.append(self.build_scan_features(scan, scan_idx, ms_idx, id, j, row_dict))
+
+            
+
+            # Pick top hit
+            statistics['precursors'] += 1
+            if len(sn_arr) > 0:
+
+                #print([el['intensity'] for el in sn_arr])
+                intensity_arr = np.array([el['Intensity'] for el in sn_arr])
+                hit_idx = np.argmax(intensity_arr)
+
+                top_scan = sn_arr[hit_idx]
+
+                for el in sn_arr:
+                    el['Run'] = name
+                    el['Datapoints'] = len(sn_arr)
+
+                if self.keep_all:
+                    out_df += sn_arr
+                else:
+                    if self.add_isotopes:
+                        top_scan_id = top_scan['scan_id']
+                        top_scans = [features for features in sn_arr if features['Scan.Id'] == top_scan_id]
+                        top_scan = self.join_top_scans(top_scans)
+
+                    
+                    out_df.append(get_top_scan)
+
+                statistics['identified'] += 1
+            else:
+                statistics['failed'] += 1
+        
+        # Calculate statistics on success of matching
+        successrate = statistics['identified'] / statistics['precursors']*100
+        print(f"{name} identified: {successrate:.2f}%")
+
+        return pd.DataFrame(out_df)
+
+
 class FeatureDetection():
 
     def __init__(self):
@@ -433,237 +666,6 @@ class FeatureDetection():
                 
         return np.array(sparse_binned_tic)
 
-class MatchReport:
-    # labels as found in the Precursor.Id
-    def __init__(self, 
-                mzml_list: List, 
-                report: Str, 
-                scan_window = 5, 
-                mass_error = 15,
-                isotope_start = 0,
-                isotope_stop = 3,
-                add_isotopes = False,
-                keep_all = False,
-                resolution = 70000): 
-        """
-        The class can be used to match a DIA-NN report to an centroided or profile mode mzml file.
-        After matching peaks to a certain region, features and data can be extracted.
-
-        Processing order and steps for customization:
-
-        1. The report dataframe is loaded and filtered based on the filter_report(report) function.
-
-        2. The report dataframe is split into sub dataframes which are generated based on the Run column.
-
-        3. Precursors are then matched to the mzml file based on the retation time. 
-        For every precursors a list of potential hits is created based on the defined scan window, mass error and isotopes.
-        For every hit the function build_scan_features(self, scan, scan_id, mz_id, precursor_id, j, mz) is called.
-
-        4. The top hit is selected based on the intensity field in the feature dict. 
-        If add_isotopes is set, all hits for different isotopes from the same scan as the top hit are passed to join_top_scans(self, feature_list) to combine the features.
-
-        Args:
-            mzml_list (list(str)): List of mzml input files. The file name has to match the Run column in the DIA-NN report.
-
-            report (str): Location of the DIA-NN report.
-
-            mass_error (float): Mass error in parts per million
-
-            scan_window (int): Number of windows adjecent to the closest retention time.
-
-            keep_all (bool): Keep all hits in the selected window.
-        """ 
-
-        self.mzml_list = mzml_list
-        self.report = report
-
-        # processing parameters
-        self.scan_window = scan_window
-        self.mass_error = mass_error
-        self.isotope_start = isotope_start
-        self.isotope_stop = isotope_stop
-        self.add_isotopes = add_isotopes
-        self.resolution = resolution
-        self.keep_all = keep_all
-
-    def __call__(self, *args: Any, **kwds: Any) -> Any:
-
-        # get report.tsv
-        report = pd.read_csv(self.report, sep='\t')
-        report = self.filter_report(report)
-        
-        dfs = []
-        for input_mzml in self.mzml_list:
-            name = Path(input_mzml).stem
-
-            # create subframe for the specific mzml
-            subframe = report[report['Run'] == name]
-
-            # load mzml file
-            dfs.append(self.match_mzml(input_mzml, subframe))
-        return pd.concat(dfs)
-
-    def filter_report(self, report_df):
-        """
-        Apply filtering on the whole report, for example Ms1.Area
-        """
-
-        return report_df[report_df['Ms1.Area'] > 0]
-
-    def build_scan_features(self, scan, scan_id, scan_window_center, mz_id, j, report_row):
-        report_row = report_row.copy()
-
-        noise = scan['noise'][mz_id]
-        intensity = scan['spectrum_intensity'][mz_id]
-        sn = intensity/noise
-        copy_number = sn * 3.5 * np.sqrt(240000/self.resolution)
-
-        report_row.update({
-                'Scan.Id':scan_id,
-                'Isotope': j,
-                'Intensity': intensity,
-                'Noise': noise,
-                'Baseline': scan['baseline'][mz_id],
-                'mz': scan['spectrum_mz'][mz_id],
-                'Mass.Error': scan['delta_mz'][mz_id],
-                'sn': sn,
-                'Copy.Number': copy_number
-                })
-
-        return report_row
-
-    def join_top_scans(self, feature_list):
-
-        return {'Datapoints': feature_list[0]['Datapoints'],
-                'Precursor.Id': feature_list[0]['Precursor.Id'],
-                'Scan.Id':feature_list[0]['Scan.Id'],
-                'Num.Isotopes': len(feature_list),
-                'Intensity': np.mean([feature['Intensity'] for feature in feature_list]),
-                'Noise': np.mean([feature['Noise'] for feature in feature_list]),
-                'Baseline': np.mean([feature['Baseline'] for feature in feature_list]),
-                'Mass.Error': np.mean([feature['Mass.Error'] for feature in feature_list]),
-                'sn': np.mean([feature['sn'] for feature in feature_list]),
-                'Copy.Number': np.sum([feature['Copy.Number'] for feature in feature_list])
-                }
-
-    def match_mzml(self, mzml, subframe):
-        name = Path(mzml).stem
-        run = pymzml.run.Reader(mzml)
-        
-        # generate RT index for MS1's
-        indexed_ms1 = []
-
-        print('Indexing Ms1 spectra')
-
-        indexed_ms1 = []
-
-        # initiate statistics
-        statistics = {'precursors' : 0, 'identified': 0, 'failed': 0}
-
-        # iterate all ms1 scans and extract retention times
-        for i, spectrum in tqdm(enumerate(run)):
-            ms_level = spectrum.ms_level
-
-            if ms_level == 1:
-
-                # Collect data from mzml
-                row_dict = {'index': i,
-                            'retention_time': spectrum['MS:1000016'],
-                            'fill_time': spectrum['MS:1000927'],
-                            'tic': spectrum['MS:1000285']}
-
-                # collect different types of spectra
-                try:
-                    baseline_parameters = spectrum._get_encoding_parameters('sampled noise baseline array')
-                    baseline = spectrum._decode(*baseline_parameters)
-                    row_dict['baseline'] = np.array(baseline)
-
-                    noise_parameters = spectrum._get_encoding_parameters('sampled noise intensity array')
-                    noise = spectrum._decode(*noise_parameters)
-                    row_dict['noise'] = np.array(noise)
-
-                    mz_parameters = spectrum._get_encoding_parameters('sampled noise m/z array')
-                    mz = spectrum._decode(*mz_parameters)
-                    row_dict['mz'] = np.array(mz)
-                except Exception as e:
-                    print (e)
-
-                    raise DataError(f'Noise and baseline data could not be extracted from {name}. Please make sure the mzML files contains this data. Aborting')
-
-                intensity_parameters = spectrum._get_encoding_parameters('intensity array')
-                intensity = spectrum._decode(*intensity_parameters)
-                row_dict['spectrum_intensity'] = np.array(intensity)
-
-                rmz_parameters = spectrum._get_encoding_parameters('m/z array')
-                rmz = spectrum._decode(*rmz_parameters)
-                row_dict['spectrum_mz'] = np.array(rmz)
-
-                indexed_ms1.append(row_dict)
-
-        # create rt indexing for matching mzml
-        rt_index = np.array([scan['retention_time'] for scan in indexed_ms1])
-        
-        out_df = []
-
-        for i, row_dict in tqdm(zip(range(len(subframe)), subframe.to_dict(orient="records"))):
-            delta_rt = np.abs(rt_index - row_dict['RT'])
-            ms_idx = np.argmin(delta_rt)
-
-            # define lower and upper indices
-            ms_idx_lower = ms_idx - self.scan_window if (ms_idx - self.scan_window) >= 0 else 0
-            ms_idx_upper = ms_idx + self.scan_window + 1 if (ms_idx + self.scan_window +1) < len(rt_index) else len(rt_index)-1
-
-            sn_arr = []
-
-            # Match scan and mz
-            for scan_idx in range(ms_idx_lower, ms_idx_upper):
-                scan = indexed_ms1[scan_idx]
-
-                for j in range(self.isotope_start, self.isotope_stop):
-                    isotope_mz = row_dict['Precursor.Mz'] + j/row_dict['Precursor.Charge']
-
-                    scan['delta_mz'] = np.abs(scan['spectrum_mz'] - isotope_mz)/isotope_mz*1e6
-                    mz_idx = np.flatnonzero(scan['delta_mz'] < self.mass_error)
-
-                    for id in mz_idx:
-                        sn_arr.append(self.build_scan_features(scan, scan_idx, ms_idx, id, j, row_dict))
-
-            
-
-            # Pick top hit
-            statistics['precursors'] += 1
-            if len(sn_arr) > 0:
-
-                #print([el['intensity'] for el in sn_arr])
-                intensity_arr = np.array([el['Intensity'] for el in sn_arr])
-                hit_idx = np.argmax(intensity_arr)
-
-                top_scan = sn_arr[hit_idx]
-
-                for el in sn_arr:
-                    el['Run'] = name
-                    el['Datapoints'] = len(sn_arr)
-
-                if self.keep_all:
-                    out_df += sn_arr
-                else:
-                    if self.add_isotopes:
-                        top_scan_id = top_scan['scan_id']
-                        top_scans = [features for features in sn_arr if features['Scan.Id'] == top_scan_id]
-                        top_scan = self.join_top_scans(top_scans)
-
-                    
-                    out_df.append(get_top_scan)
-
-                statistics['identified'] += 1
-            else:
-                statistics['failed'] += 1
-        
-        # Calculate statistics on success of matching
-        successrate = statistics['identified'] / statistics['precursors']*100
-        print(f"{name} identified: {successrate:.2f}%")
-
-        return pd.DataFrame(out_df)
 
 if __name__ == "__main__":
     feature_detection = FeatureDetection()
