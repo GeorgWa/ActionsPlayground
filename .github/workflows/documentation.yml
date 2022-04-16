@@ -19,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+      with:
+        ref: ${{ github.head_ref }}
     - name: Setup Python
       uses: actions/setup-python@v3.1.2
       with:
@@ -39,4 +41,19 @@ jobs:
     - name: Build PDF
       run: |
         make -C docs latexpdf
+        
+    - name: Move PDF
+      run: |
+        mv docs/build/latex/doc.pdf manual.pdf
+        
+    - name: Commit Documentation
+      run: |
+        git config --global user.name 'Slavov User'
+        git config --global user.email 'Slavov-User@users.noreply.github.com'
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+        git add .
+        git commit -m "Automated documentation generated"
+        git push
+        
+    
         
