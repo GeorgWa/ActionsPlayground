@@ -18,15 +18,13 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-    - name: "install dependencies"
-      run: "pip install sphinx-argparse"
+    - uses: actions/checkout@v1
       
     - uses: ammaraskar/sphinx-action@master
       with:
         pre-build-command: python -m pip install sphinx-argparse
         docs-folder: "docs/"
       
-    - uses: actions/checkout@v1
     - uses: ammaraskar/sphinx-action@master
       with:
         docs-folder: "docs/"
