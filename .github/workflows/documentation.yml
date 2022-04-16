@@ -28,11 +28,15 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install flake8 pytest
+        python -m pip install sphinx sphinx-argparse
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         
-    - name: Latex
+    - name: Setup Latex
       run: |
         sudo apt-get update -y
         sudo apt-get install -y latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
+        
+    - name: Build PDF
+      run: |
+        make -C docs/source latexpdf
         
