@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 
-import collections
-import queue
-import sys, getopt
 import argparse
 import os
 import pathlib
@@ -10,22 +7,14 @@ import shutil
 import subprocess
 import pandas as pd
 from datetime import datetime
-import xml.etree.ElementTree as ET
 import pymzml
 import numpy as np
-from tqdm import tqdm
+
 from scipy.sparse import coo_matrix
 
-import matplotlib.pyplot as plt
-from scipy import stats
-
-import matplotlib.pyplot as plt
-
-import matplotlib.colors as colors
-import matplotlib.cm as cmx
 import multiprocessing
 
-from diannbase.processing import MatchReport
+#from diannbase.processing import MatchReport
 
 def generate_parser():
         

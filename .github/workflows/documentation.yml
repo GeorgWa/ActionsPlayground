@@ -38,5 +38,5 @@ jobs:
         
     - name: Build PDF
       run: |
-        make -C docs/source latexpdf
+        make -C docs latexpdf
         
