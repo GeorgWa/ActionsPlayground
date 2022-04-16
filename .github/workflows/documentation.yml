@@ -51,7 +51,8 @@ jobs:
         git config --global user.name 'Slavov User'
         git config --global user.email 'Slavov-User@users.noreply.github.com'
         git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-        git commit -am "Automated documentation generated"
+        git add .
+        git commit m "Automated documentation generated"
         git push
         
     
