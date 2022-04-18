@@ -5,15 +5,16 @@ import os
 import pathlib
 import shutil
 import subprocess
-from docutils import DataError
+from warnings import catch_warnings
+from attr import validate
 import pandas as pd
 from datetime import datetime
 import pymzml
 import numpy as np
-from typing import List, Str, Any
+from typing import List, Any, Type
+
 from pathlib import Path
 from tqdm import tqdm
-DataError
 from scipy.sparse import coo_matrix
 
 import multiprocessing
@@ -40,6 +41,8 @@ def generate_parser():
     
     parser.add_argument("-t","--temporary-folder", type=pathlib.Path, help="Input Raw files will be temporarilly copied to this folder. Required for use with Google drive.")
 
+    parser.add_argument("-r","--raw-file-location", type=pathlib.Path, default='', help="By default, raw files are loaded based on the File.Name column in the report.tsv. With this option, a different folder can be specified.")
+
     parser.add_argument("--no-feature-detection", default=False, action='store_true', help="All steps are performed as usual but Dinosaur feature detection is skipped. No features.tsv file will be generated.")
 
     parser.add_argument("--no-fill-times", default=False, action='store_true', help="All steps are performed as usual but fill times are not extracted. No fill_times.tsv file will be generated.")
@@ -51,9 +54,9 @@ def generate_parser():
     parser.add_argument("--no-mzml-generation", default=False, action='store_true', help=('Raw files are not converted to .mzML. '
     'Nevertheless, mzML files are expected in their theoretical output location and loaded. Should be only be carefully used for repeated calulcations or debugging'))       
 
-    parser.add_argument("--mz-bin-size", default=10, help="Bin size over the mz dimension for TIC binning.")
+    parser.add_argument("--mz-bin-size", default=10.0,  type=float, help="Bin size over the mz dimension for TIC binning.")
 
-    parser.add_argument("--tic-dense", default=False, action='store_true', help="Return dense TIC matrices. If this option is selected dense TIC matrices are exported for every dataset seperately. The default behavior is a single sparse output file.")
+    parser.add_argument("--rt-bin-size", default=1,  type=float, help="Bin size over the RT dimension for TIC binning in minutes. If a bin size of 0 is provided, binning will not be applied and TIC is given per scan.")
 
     parser.add_argument("--resolution", default=70000, help="Set the resolution used for estimating counts from S/N data")
 
@@ -67,7 +70,7 @@ class MatchReport:
     # labels as found in the Precursor.Id
     def __init__(self, 
                 mzml_list: List, 
-                report: Str, 
+                report: str, 
                 scan_window = 5, 
                 mass_error = 15,
                 isotope_start = 0,
@@ -294,7 +297,36 @@ class MatchReport:
         print(f"{name} identified: {successrate:.2f}%")
 
         return pd.DataFrame(out_df)
+def _validate_path(file_path, description):
+    if not os.path.isfile(file_path): 
+        raise ValueError(f'{description} \n {file_path} does not exist.')
 
+def validate_path(list_or_str, description):
+    if isinstance(list_or_str,str):
+        _validate_path(list_or_str, description)
+
+    if isinstance(list_or_str,List):
+        for elem in list_or_str:
+          _validate_path(elem, description)  
+
+    else:
+        raise TypeError('Provide a string or list of strings')
+
+def _validate_filetype(file_path, description):
+    filename, file_extension = os.path.splitext(file_path)
+    if file_extension.lower() not in ['.raw','.mzml']:
+        raise ValueError(f'{description} \n {file_extension} not supported.')
+
+def validate_filetype(list_or_str, description):
+    if isinstance(list_or_str,str):
+        _validate_filetype(list_or_str, description)
+
+    if isinstance(list_or_str,List):
+        for elem in list_or_str:
+          _validate_filetype(elem, description)  
+
+    else:
+        raise TypeError('Provide a string or list of strings')
 
 class FeatureDetection():
 
@@ -309,9 +341,7 @@ class FeatureDetection():
         return "[" + dt_string + "] "
 
     def log(self, msg):
-        print(self.get_timestamp() + msg)
-
-    
+        print(self.get_timestamp() + msg)   
 
     def __call__(self):
 
@@ -321,8 +351,28 @@ class FeatureDetection():
         self.output_folder = pathlib.Path(self.args.report).parent.resolve()
         self.report_tsv = pd.read_csv(self.args.report, sep='\t')
         self.experiment_files = list(set(self.report_tsv['File.Name']))
+
+        # Contains a list of the raw files in the report
+        self.experiment_files = [file.replace('\\','/') for file in self.experiment_files]
         self.experiment_files = [pathlib.Path(file) for file in self.experiment_files]
-        self.experiment_names = [path.stem for path in self.experiment_files]
+
+        # Source raw files from alternative folder
+        if self.args.raw_file_location != '':
+            self.log('Raw files will be sourced from the specified folder')
+
+            if not os.path.isdir(self.args.raw_file_location): 
+                raise ValueError(f'{self.args.raw_file_location} does not exist.')
+
+            for i, file_path in enumerate(self.experiment_files):
+                file = os.path.basename(file_path)
+                self.experiment_files[i] = os.path.join(self.args.raw_file_location, file)
+
+        # Raw file strings are then valaidated
+        self.log('Validating raw file locations')
+        validate_path(self.experiment_files, 'DO-MS DIA feature extraction relies on the raw file locations found in the File.Name column in the report.tsv.')
+        validate_filetype(self.experiment_files, 'DO-MS DIA feature extraction relies on the raw file locations found in the File.Name column in the report.tsv.')
+
+        self.experiment_names = [Path(path).stem for path in self.experiment_files]
 
         self.log('The following experiments were found:')
         for exp in self.experiment_names:
@@ -345,27 +395,43 @@ class FeatureDetection():
         
         # Check if --no-mzml-generation has been set
         if not self.args.no_mzml_generation:
-            self.mzml_generation()
-            pass
-                
-        # Check if --no-feature-detection has been set
-        if not self.args.no_feature_detection:
-            self.feature_detection()
-            pass
+            try:
+                self.mzml_generation()
+            except Exception as e: 
+                self.log('mzml generation failed:')
+                print(e)
 
         # Check if --no-fill-times has been set
         if not self.args.no_fill_times:
-            self.fill_times()
-            pass
+            try:
+                self.fill_times()
+            except Exception as e: 
+                self.log('Fill time extraction failed:')
+                print(e)
 
         # Check if --no-tic has been set
         if not self.args.no_tic:
-            self.tic()
-            pass
+            try:
+                self.tic()
+            except Exception as e: 
+                self.log('Fill time extraction failed:')
+                print(e)
 
         # Check if --no-sn has been set
         if not self.args.no_sn:
-            self.sn()           
+            try:
+                self.sn()   
+            except Exception as e: 
+                self.log('SN extraction failed:')
+                print(e)        
+
+        # Check if --no-feature-detection has been set
+        if not self.args.no_feature_detection:
+            try:
+                self.feature_detection()
+            except Exception as e: 
+                self.log('Feature detection failed:')
+                print(e) 
         
         # delete temporary files if specified
         if self.args.delete:
@@ -385,8 +451,6 @@ class FeatureDetection():
                     if os.path.isfile(experiment):
                         os.remove(experiment)
     def sn(self):
-
-        
         matcher = MatchReport(self.mzml_files, self.args.report, add_isotopes=self.args.isotopes_sn)
         df = matcher()
         df.to_csv(os.path.join(self.output_folder,'sn.tsv') ,sep='\t', index=False)
@@ -484,28 +548,25 @@ class FeatureDetection():
         
         for input_mzml, name in zip(self.mzml_files, self.experiment_names):
             self.log(f'Collecting fill times for {name}')
-            
-            try:
-                run = pymzml.run.Reader(input_mzml)
-                for spectrum in run:
 
-                    ms_level = spectrum.ms_level
+            run = pymzml.run.Reader(input_mzml)
+            for spectrum in run:
 
-                    cv_params = spectrum.get_element_by_path(['scanList', 'scan', 'cvParam'])
-                    for el in cv_params:
-                        key_val = el.attrib
-                        
-                        # parse 
-                        if key_val['name'] == 'scan start time':
-                            scan_start_time = key_val['value']
+                ms_level = spectrum.ms_level
 
-                        if key_val['name'] == 'ion injection time':
-                            injection_time = key_val['value']
+                cv_params = spectrum.get_element_by_path(['scanList', 'scan', 'cvParam'])
+                for el in cv_params:
+                    key_val = el.attrib
+                    
+                    # parse 
+                    if key_val['name'] == 'scan start time':
+                        scan_start_time = key_val['value']
+
+                    if key_val['name'] == 'ion injection time':
+                        injection_time = key_val['value']
 
 
-                    df_to_be.append([name, ms_level, scan_start_time, injection_time])
-            except:
-                print(f"{name} failed")
+                df_to_be.append([name, ms_level, scan_start_time, injection_time])
 
         fill_times_df = pd.DataFrame(df_to_be, columns =['Run', 'Ms.Level', 'RT.Start', 'Fill.Time'])
         output_fill_times = os.path.join(self.output_folder, "fill_times.tsv")
@@ -515,7 +576,7 @@ class FeatureDetection():
         collect_dfs = []
 
         for input_mzml, name in zip(self.mzml_files, self.experiment_names):
-
+            self.log(f'Collecting TIC for {name}')
             # get tic for single run
             result = self.tic_single(input_mzml, name)
 
@@ -530,7 +591,6 @@ class FeatureDetection():
             out_df.to_csv(output_tic,index=False, header=True, sep='\t')
 
     def tic_single(self, input_mzml, name):
-
         run = pymzml.run.Reader(input_mzml)
 
         ms1_id = -1
@@ -542,27 +602,13 @@ class FeatureDetection():
         # contains retention times
         rt_label = []
 
-
         for spectrum in run:
             ms_level = spectrum.ms_level
             if ms_level == 1:        
                 ms1_id += 1
 
-                # get total ion current meta data
-                cv_params = spectrum.get_element_by_path(['cvParam'])
-                for el in cv_params:
-                    key_val = el.attrib
-
-                    if key_val['name'] == "total ion current":
-                        total_ion_current = float(key_val['value'])
-
-                # get total ion current meta data
-                cv_params = spectrum.get_element_by_path(['scanList', 'scan', 'cvParam'])
-                for el in cv_params:
-                    key_val = el.attrib
-
-                    if key_val['name'] == 'scan start time':
-                        scan_start_time = float(key_val['value'])    
+                scan_start_time = spectrum['MS:1000016']
+                total_ion_current = spectrum['MS:1000285']
 
                 rt_label.append(scan_start_time)
 
@@ -578,58 +624,26 @@ class FeatureDetection():
 
         # sparse tic matrix is converted to dense tic matrix
         rt_col = sparse_arr[:,0].astype(int)
-        mz_col = sparse_arr[:,1].astype(int)
+        mz_col = sparse_arr[:,1]
         tic = sparse_arr[:,2]
-
+        
+        rt_col = [rt_label[i] for i in rt_col]
         # check if sparse output has been selected
         # Easier to handle in ggplot2
-        if not self.args.tic_dense:
-            raw_file = [name] * len(tic)
-            data = {'Raw.File': raw_file, 
-            'RT': rt_col,
-            'MZ': mz_col,
-            'TIC': tic}
-            return pd.DataFrame.from_dict(data)
-
-
-        sparse_tic = coo_matrix((tic, (rt_col, mz_col)))
-        dense_tic = sparse_tic.todense()
-
-        # The following block is needed to generate labels for the mz and RT bins
-        # I am surprised how complicated I made it. I'm sure it was late and there is an obvious solution
-        min_mz_untransformed = np.min(mz_col)
-        min_mz = min_mz_untransformed*self.args.mz_bin_size
-
-        rt_label = np.floor(rt_label)
-        unique_label = np.unique(rt_label)
-
-        # perform rt binning. Easy because of dense matrix format
-        time_binned_mat = []
-        for minute in unique_label:
-            idx = np.where(rt_label == minute)
-            time_binned = np.sum(dense_tic[idx,:],axis=1)
-            time_binned_mat.append(time_binned)
-            
-        time_binned_mat = np.concatenate(time_binned_mat)
-
-        rt_len, mz_len = time_binned_mat.shape
-        rt_index = np.arange(rt_len)
-        mz_index = np.arange(mz_len)*self.args.mz_bin_size
-        first_index = np.where(min_mz==mz_index)[0][0]
-        mz_index = mz_index[first_index:]
         
-        # start mz matrix from first non empty mz bin observed
-        time_binned_mat = time_binned_mat[:,first_index:]
+        raw_file = [name] * len(tic)
+        data = {'Raw.File': raw_file, 
+        'RT': rt_col,
+        'MZ': mz_col,
+        'TIC': tic}
 
-        # Assemble pandas dataframe for tsv output
-        rt_df = pd.DataFrame(data=rt_index, columns=["RT"])
-        tic_df = pd.DataFrame(data=time_binned_mat, columns=mz_index)
-        df = pd.concat([rt_df, tic_df], axis=1)
+        df = pd.DataFrame.from_dict(data)
 
-        output_tic = os.path.join(self.output_folder, f"tic_{name}.tsv")
-        df.to_csv(output_tic,index=False, header=True, sep='\t')
+        if self.args.rt_bin_size > 0:
+            df['RT'] = np.round(df['RT']/self.args.rt_bin_size)*self.args.rt_bin_size
+            df = df.groupby(['RT','MZ'])['TIC'].sum().reset_index()
 
-        return None
+        return df
         
 
     def calc_sparse_binned_tic(self, mz, intensity, total_ion_current, ms1_id):
@@ -638,7 +652,7 @@ class FeatureDetection():
         # This allows efficient binning by rounding without iterative calculation of integrals
         mz_diff = np.diff(mz)
         mz_diff = np.pad(mz_diff, (0, 1), 'constant')
-        
+ 
         # The true integral is calculated as the dot product
         integral = np.dot(mz_diff,intensity)
 
@@ -648,7 +662,7 @@ class FeatureDetection():
         binned_intensity = scaled_intensity * mz_diff
         
         binned_mz = np.round(mz/self.args.mz_bin_size)
-        binned_mz = binned_mz.astype(int)
+        binned_mz = binned_mz * self.args.mz_bin_size
         
         sparse_binned_tic = []
 
