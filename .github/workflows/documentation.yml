@@ -48,8 +48,8 @@ jobs:
         
     - name: Commit Documentation
       run: |
-        git config --global user.name 'Slavov User'
-        git config --global user.email 'Slavov-User@users.noreply.github.com'
+        git config --global user.name 'SlavovBot'
+        git config --global user.email 'SlavovBot@users.noreply.github.com'
         git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
         git add .
         git commit -m "Automated documentation generated"
