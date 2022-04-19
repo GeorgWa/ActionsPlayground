@@ -1,0 +1,12 @@
+Folder.Name	Has.Files	Path
+testdaten	FALSE	/Users/georgwallmann/Documents/testdaten/testdaten
+2022_06_24_MS2_number_wGW011-wGW017	TRUE	/Users/georgwallmann/Documents/testdaten/2022_06_24_MS2_number_wGW011-wGW017
+2022_02_24_plex_single_cells_wJD1157-wJD65	FALSE	/Users/georgwallmann/Documents/testdaten/2022_02_24_plex_single_cells_wJD1157-wJD65
+peak_translation	FALSE	/Users/georgwallmann/Documents/testdaten/2022_03_04_1x/peak_translation
+no_peak_translation	FALSE	/Users/georgwallmann/Documents/testdaten/2022_03_04_1x/no_peak_translation
+wSQC_03112022_LCB43_B1_1750	TRUE	C:\temp\2022_03_18_wGW018_wGW024\wSQC_03112022_LCB43_B1_1750-20220318T191037Z-001\wSQC_03112022_LCB43_B1_1750
+wSQC_03112022_LCB43_B1_1753	TRUE	C:\temp\2022_03_18_wGW018_wGW024\wSQC_03112022_LCB43_B1_1753-20220318T190727Z-001\wSQC_03112022_LCB43_B1_1753
+wSQC_02132022_LCB41_B17_1735	TRUE	C:\temp\2022_03_18_wGW018_wGW024\wSQC_02132022_LCB41_B17_1735-20220318T191633Z-001\wSQC_02132022_LCB41_B17_1735
+peak_height_5_JD_comparison	FALSE	C:\temp\2022_03_18_wGW018_wGW024\peak_height_5_JD_comparison
+d13_fdr1	TRUE	/Volumes/GoogleDrive/.shortcut-targets-by-id/1uQ4exoKlaZAGnOG1iCJPzYN3ooYYZB7g/MS/Users/GW/2022_03_25_wJD1018_wJD1205_1x1x1_d13/d13_fdr1
+peak_height	TRUE	/Volumes/GoogleDrive/.shortcut-targets-by-id/1uQ4exoKlaZAGnOG1iCJPzYN3ooYYZB7g/MS/Users/GW/2022_04_09_wGW025_wGW031_Ms2_number/peak_height

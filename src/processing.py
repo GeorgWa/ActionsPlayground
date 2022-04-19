@@ -561,11 +561,26 @@ class FeatureDetection():
 
                     if key_val['name'] == 'ion injection time':
                         injection_time = key_val['value']
+                
+                window_center = 0
+                window_lower_delta = 0
+                window_upper_delta = 0
 
+                if ms_level == 2:
 
-                df_to_be.append([name, ms_level, scan_start_time, injection_time])
+                    try:
+                        window_center = spectrum['MS:1000827']
+                        window_lower_delta = spectrum['MS:1000828']
+                        window_upper_delta = spectrum['MS:1000828']
+                    except:
+                        pass
 
-        fill_times_df = pd.DataFrame(df_to_be, columns =['Run', 'Ms.Level', 'RT.Start', 'Fill.Time'])
+                window_lower = window_center - window_lower_delta
+                window_upper = window_center + window_upper_delta
+
+                df_to_be.append([name, ms_level, window_lower, window_upper, scan_start_time, injection_time])
+
+        fill_times_df = pd.DataFrame(df_to_be, columns =['Run', 'Ms.Level', 'Window.Lower','Window.Upper','RT.Start', 'Fill.Time'])
         output_fill_times = os.path.join(self.output_folder, "fill_times.tsv")
         fill_times_df.to_csv(output_fill_times,index=False, header=True, sep='\t')
 
@@ -638,7 +653,7 @@ class FeatureDetection():
 
         if self.args.rt_bin_size > 0:
             df['RT'] = np.round(df['RT']/self.args.rt_bin_size)*self.args.rt_bin_size
-            df = df.groupby(['RT','MZ'])['TIC'].sum().reset_index()
+            df = df.groupby(['Raw.File','RT','MZ'])['TIC'].sum().reset_index()
 
         return df
         

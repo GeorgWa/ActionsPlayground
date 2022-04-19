@@ -1,0 +1,92 @@
+init <- function() {
+  
+  type <- 'plot'
+  box_title <-  'Number of Protein Identifications'
+  help_text <- 'Number of proteotypic protein IDs found per run. Protein IDs are shown across all channels in an experiment.'
+  source_file <- 'report'
+  
+  .validate <- function(data, input) {
+    validate(need(data()[['report']], paste0('Upload report.txt')))
+    validate(need((nrow(data()[['report']]) > 1), paste0('No Rows selected')))
+}
+  
+  
+  
+  .plotdata <- function(data, input) {
+    
+    plotdata <- data()[['report']][,c('Raw.file', 'Ms1.Area', 'Precursor.Id','Proteotypic', 'Label', 'Protein.Ids','Protein.Group','Protein.Q.Value','PG.Q.Value')]
+    plotdata <- plotdata[plotdata$Ms1.Area>0,]
+    
+    Proteins <- plotdata %>%
+      dplyr::filter(Ms1.Area > 0) %>%
+      dplyr::filter(Proteotypic == 1) %>%
+      dplyr::group_by(Raw.file) %>%
+      dplyr::summarise(Identifications=n_distinct(Protein.Ids))
+    Proteins$Label <- 'Proteins'
+    
+    Proteins.Q <- plotdata %>%
+      dplyr::filter(Ms1.Area > 0) %>%
+      dplyr::filter(Protein.Q.Value < 0.01) %>%
+      dplyr::filter(Proteotypic == 1) %>%
+      dplyr::group_by(Raw.file) %>%
+      dplyr::summarise(Identifications=n_distinct(Protein.Ids))
+    Proteins.Q$Label <- 'Proteins, q-val < 1%'
+    
+    PG <- plotdata %>%
+      dplyr::filter(Ms1.Area > 0) %>%
+      dplyr::filter(Proteotypic == 1) %>%
+      dplyr::group_by(Raw.file) %>%
+      dplyr::summarise(Identifications=n_distinct(Protein.Group))
+    PG$Label <- 'Protein Groups'
+    
+    PG.Q <- plotdata %>%
+      dplyr::filter(Ms1.Area > 0) %>%
+      dplyr::filter(PG.Q.Value < 0.01) %>%
+      dplyr::filter(Proteotypic == 1) %>%
+      dplyr::group_by(Raw.file) %>%
+      dplyr::summarise(Identifications=n_distinct(Protein.Group))
+    PG.Q$Label <- 'Protein Groups, q-val < 1%'
+    
+    plotdata <- rbind(Proteins, Proteins.Q, PG, PG.Q)
+    # create custom factor levels to influence the order of labels
+    levels_plot = c('Proteins', 'Proteins, q-val < 1%', 'Protein Groups', 'Protein Groups, q-val < 1%')
+    plotdata <- within(plotdata, 
+                       Label <- factor(Label, levels=levels_plot))
+    
+    
+    return(plotdata)
+  }
+  
+  .plot <- function(data, input) {
+    .validate(data, input)
+    plotdata <- .plotdata(data, input)
+
+    validate(need((nrow(plotdata) > 0), paste0('No Rows selected')))
+    
+    ggplot(plotdata, aes(x=Label, y=Identifications, colour=Label, fill=Label )) +
+      geom_bar(stat="identity", alpha=0.7) +
+      facet_wrap(~Raw.file, nrow = 1, scales = "free_x")+
+      theme_base(input=input, show_legend=T)+
+      theme(axis.text.x = element_blank())+
+      labs(x='Experiment', y='Number of Proteins') +
+      theme(legend.position = "bottom") +
+      custom_theme +
+      scale_fill_manual(values = custom_colors)+
+      scale_color_manual(values = custom_colors)
+    
+    
+  }
+  
+  return(list(
+    type=type,
+    box_title=box_title,
+    help_text=help_text,
+    source_file=source_file,
+    validate_func=.validate,
+    plotdata_func=.plotdata,
+    plot_func=.plot,
+    dynamic_width=150,
+    dynamic_width_base=300
+  ))
+}
+
