@@ -49,7 +49,8 @@ init <- function() {
       # get carrier label, eg. label with highest intensity
       meandf <- subdf %>%
         dplyr::group_by(Label) %>%
-        dplyr::summarise(mean=mean(Ms1.Area))
+        dplyr::summarise(mean=mean(Ms1.Area), 
+                       .groups = "drop")
       meandf <- meandf[order(meandf$mean),]
   
       carrier_label <- 'd8' #meandf[1:1,][['Label']]

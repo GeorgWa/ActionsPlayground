@@ -26,23 +26,27 @@ init <- function() {
     # calculate channel wise IDs
     plotdata_n <- plotdata %>%
       dplyr::group_by(Raw.file, Label) %>%
-      dplyr::summarise(Identifications=n())
+      dplyr::summarise(Identifications=n(), 
+                       .groups = "drop")
 
     # calculate IDs across channels
     plotdata_k <- plotdata %>%
       dplyr::group_by(Raw.file, Precursor.Id) %>%
-      dplyr::summarise(Identifications=n())
+      dplyr::summarise(Identifications=n(), 
+                       .groups = "drop")
     
     # calculate union of all IDs
     plotdata_union <- plotdata_k %>%
       dplyr::group_by(Raw.file) %>%
-      dplyr::summarise(Identifications=n())
+      dplyr::summarise(Identifications=n(), 
+                       .groups = "drop")
     
     # calculate intersection of all IDs
     plotdata_k = plotdata_k[plotdata_k$Identifications==3,]
     plotdata_intersected <- plotdata_k %>%
       dplyr::group_by(Raw.file) %>%
-      dplyr::summarise(Identifications=n())
+      dplyr::summarise(Identifications=n(), 
+                       .groups = "drop")
     
     # Set labels dor newly create dataframe
     plotdata_intersected$Label = "Intersected"

@@ -8,9 +8,6 @@ init <- function() {
   .validate <- function(data, input) {
     validate(need(data()[['sn']], paste0('Upload report.txt')))
     validate(need((nrow(data()[['sn']]) > 1), paste0('No Rows selected')))
-    
-    validate(need(data()[['report']], paste0('Upload report.txt')))
-    validate(need((nrow(data()[['report']]) > 1), paste0('No Rows selected')))
     validate(need(config[['ChemicalLabels']], paste0('Please provide a list of labels under the key: ChemicalLabels in the settings.yaml file')))
     
   }
@@ -18,11 +15,7 @@ init <- function() {
   .plotdata <- function(data, input) {
     plotdata <- data()[['sn']][,c('Raw.file','Precursor.Id', 'Copy.Number')]
     plotdata <- translate_diann_channel_format(plotdata, columns = c("Precursor.Id"))
-    view(plotdata)
     plotdata <- separate_channel_info(plotdata)
-    view(plotdata)
- 
-    
 
     plotdata$Intensity <- log10(plotdata$Copy.Number)
     
@@ -69,7 +62,6 @@ init <- function() {
     validate_func=.validate,
     plotdata_func=.plotdata,
     plot_func=.plot,
-    box_width=12, # bootstrap column units
     dynamic_width=150,
     dynamic_width_base=150
   ))

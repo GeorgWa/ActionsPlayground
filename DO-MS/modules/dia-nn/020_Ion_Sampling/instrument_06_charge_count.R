@@ -27,7 +27,7 @@ init <- function() {
     
     plotdata <- plotdata %>% 
       group_by(Raw.file, Precursor.Id) %>% 
-      summarise(Ms1.Area = sum(Ms1.Area), Charge = first(Precursor.Charge))
+      summarise(Ms1.Area = sum(Ms1.Area), Charge = first(Precursor.Charge), .groups = "drop")
     
     plotdata <- dplyr::filter(plotdata, Ms1.Area>0)
     
@@ -48,7 +48,7 @@ init <- function() {
     validate(need((nrow(plotdata) > 1), paste0('No Rows selected')))
     
     ggplot(plotdata) + 
-      geom_bar(aes(x=Raw.file, y=n, fill=factor(Charge), colour=factor(Charge)), 
+      geom_bar(aes(x=factor(Charge), y=n, fill=factor(Charge), colour=factor(Charge)), 
                stat='identity', position='dodge2', alpha=0.7) +
       facet_wrap(~Raw.file, nrow = 1, scales = "free_x")+
       scale_fill_hue(labels=c('1', '2', '3', '>3')) + 
@@ -57,9 +57,11 @@ init <- function() {
       custom_theme +
       scale_fill_manual(values = custom_colors)+
       scale_color_manual(values = custom_colors)+
+      theme(axis.text.x=element_blank(),
+            axis.ticks.x=element_blank())+
       guides(fill = guide_legend(override.aes = list(color = NA)), 
-             color = FALSE, 
-             shape = FALSE) 
+             color = 'none', 
+             shape = 'none') 
   }
   
   return(list(

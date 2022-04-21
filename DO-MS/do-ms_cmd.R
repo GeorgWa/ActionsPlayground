@@ -244,7 +244,7 @@ for(i in 1:length(config[['load_misc_input_files']])) {
   prnt(paste0('Loading misc file: ', name))
   
   # read in as data frame (need to convert from tibble)
-  data[[name]] <- as.data.frame(read_tsv(file=path))
+  data[[name]] <- as.data.frame(read_tsv(file=path, col_types = cols()))
   # rename columns (replace whitespace or special characters with '.')
   colnames(data[[name]]) <- gsub('\\s|\\(|\\)|\\/|\\[|\\]', '.', 
                                        colnames(data[[name]]))

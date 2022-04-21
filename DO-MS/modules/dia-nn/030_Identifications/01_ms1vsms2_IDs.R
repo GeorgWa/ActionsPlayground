@@ -9,12 +9,10 @@ init <- function() {
     validate(need(data()[['report']], paste0('Upload report.txt')))
     validate(need((nrow(data()[['report']]) > 1), paste0('No Rows selected')))
   }
-  
-  
 
   
   .plotdata <- function(data, input) {
-    plotdata <- data()[['report']]
+    plotdata <- data()[['report']][,c('Raw.file','Precursor.Quantity', 'Ms1.Area')]
     #plotdata <- as.data.frame(read_tsv(file='/Users/georgwallmann/Documents/testdaten/2022_06_24_MS2_number_wGW011-wGW017/report.tsv',guess_max=1e5))
 
     full_counts = plotdata %>% 

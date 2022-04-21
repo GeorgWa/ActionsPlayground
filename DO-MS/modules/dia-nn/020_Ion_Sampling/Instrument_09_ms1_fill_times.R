@@ -11,8 +11,11 @@ init <- function() {
   
   .plotdata <- function(data, input) {
     plotdata <- data()[['fill_times']]
-    
-    plotdata <- plotdata[plotdata$RT.Start > config[['RT.Start']], ]
+
+    # Apply retention time filter as specified in settings.yaml
+    plotdata <- plotdata %>% 
+      filter(RT.Start > config[['RT.Start']]) %>% 
+      filter(RT.Start < config[['RT.End']])
     
     binned_data <- plotdata %>% 
       filter(Ms.Level == 1) %>% 
@@ -20,7 +23,10 @@ init <- function() {
     
     sum_data <- binned_data %>%
       group_by(bin, Raw.file) %>% 
-      summarise(mean = mean(Fill.Time), sd = sd(Fill.Time), RT.Mean = mean(RT.Start), max = max(Fill.Time)) %>% 
+      summarise(mean = mean(Fill.Time), 
+                sd = sd(Fill.Time), 
+                RT.Mean = mean(RT.Start), 
+                max = max(Fill.Time), .groups = "drop") %>% 
       mutate(lower = mean - sd/2, upper = pmin(mean + sd/2, max), type='sum')
     
     joined_data <- binned_data %>% 

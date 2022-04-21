@@ -17,7 +17,7 @@ init <- function() {
     ms1_extracted <- data()[['ms1_extracted']][,c('Raw.file', 'Ms1.Area', 'Precursor.Id')]
     
     
-    report <- data()[['report']]
+    report <- data()[['report']][,c('Raw.file', 'Ms1.Area', 'Precursor.Id')]
     
     
     ms1_extracted <- ms1_extracted[ms1_extracted$Ms1.Area>0,]
@@ -27,12 +27,14 @@ init <- function() {
     # calculate channel wise IDs
     ms1_extracted_s <- ms1_extracted %>%
       dplyr::group_by(Raw.file) %>%
-      dplyr::summarise(Identifications=n())
+      dplyr::summarise(Identifications=n(), 
+                       .groups = "drop")
     
     # calculate channel wise IDs
     report_s <- report %>%
       dplyr::group_by(Raw.file) %>%
-      dplyr::summarise(Identifications=n())
+      dplyr::summarise(Identifications=n(), 
+                       .groups = "drop")
     
     # Set labels dor newly create dataframe
     ms1_extracted_s$Label <- "Ms1_extracted.tsv"
@@ -51,7 +53,8 @@ init <- function() {
         dplyr::filter(Ms1.Area > 0) %>%
         dplyr::filter(Channel.Q.Value < 0.01) %>%
         dplyr::group_by(Raw.file) %>%
-        dplyr::summarise(Identifications=n())
+        dplyr::summarise(Identifications=n(), 
+                       .groups = "drop")
         
       report_channel_q$Label <- "channel q-value"
       

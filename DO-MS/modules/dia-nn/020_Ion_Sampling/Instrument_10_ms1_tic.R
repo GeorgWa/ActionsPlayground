@@ -13,10 +13,14 @@ init <- function() {
   .plotdata <- function(data, input) {
     plotdata <- data()[['tic']]
     
-    tic.matrix <- plotdata[plotdata$Retention.time > config[['RT.Start']], ]
+    # Apply retention time filter as specified in settings.yaml
+    tic.matrix <- plotdata %>% 
+      filter(RT.Start > config[['RT.Start']]) %>% 
+      filter(RT.Start < config[['RT.End']])
+
     tic.mean <- tic.matrix %>%
       group_by(Raw.file, Retention.time) %>%
-      summarise(mean = weighted.mean(MZ, TIC))
+      summarise(mean = weighted.mean(MZ, TIC), .groups = "drop")
     
     plotdata <- list("matrix" = tic.matrix, "mean" = tic.mean)
     

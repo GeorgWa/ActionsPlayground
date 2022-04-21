@@ -26,7 +26,7 @@ init <- function() {
     
     plotdata %>% 
       group_by(Raw.file, Precursor.Id) %>% 
-      summarise(Ms1.Area = sum(Ms1.Area))
+      summarise(Ms1.Area = sum(Ms1.Area), .groups = "drop")
     
     
     plotdata <- dplyr::filter(plotdata, Ms1.Area>0)
@@ -79,7 +79,7 @@ init <- function() {
              need((nrow(plotdata) > 1), paste0('No Rows selected')))
     
     medianData = plotdata %>% group_by(Raw.file) %>%
-      summarise(median = median(Intensity))
+      summarise(median = median(Intensity), .groups = "drop")
     
     ggplot(plotdata, aes(Intensity)) + 
       facet_wrap(~Raw.file, nrow = 1, scales = "free_x") + 

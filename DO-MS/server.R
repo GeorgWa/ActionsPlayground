@@ -36,7 +36,7 @@ shinyServer(function(input, output, session) {
   
 
   if(file.exists('folder_list.txt')) {
-    .folders <- as.data.frame(read_tsv('folder_list.txt'))
+    .folders <- as.data.frame(read_tsv('folder_list.txt', col_types = cols()))
     
     # patch older versions of the folder_list where Has.Files doesn't exist
     if(ncol(.folders) < 3) {
@@ -171,7 +171,7 @@ shinyServer(function(input, output, session) {
   # react when folders_d (debounced version) is updated
   observe({
     # write folder list to file (overwrite previous)
-    write_tsv(folders_d(), path='folder_list.txt')
+    write_tsv(folders_d(), file='folder_list.txt')
   })
   
   output$data_status <- renderUI({
@@ -296,7 +296,7 @@ shinyServer(function(input, output, session) {
         # since a lot of MS data is very sparse and only using the first 1000
         # rows to guess may guess a column type wrong
         .dat <- as.data.frame(read_tsv(file=file.path(folder$Path, file[['file']]),
-                                       guess_max=1e5))
+                                       guess_max=1e5, col_types = cols()))
         
         # Custom behavior for ms1_extracted
         if(file$name == 'ms1_extracted') {
@@ -468,7 +468,7 @@ shinyServer(function(input, output, session) {
       if(!is.null(.data[[file$name]])) { next }
       
       # read in as data frame (need to convert from tibble)
-      .data[[file$name]] <- as.data.frame(read_tsv(file=.file$datapath))
+      .data[[file$name]] <- as.data.frame(read_tsv(file=.file$datapath, col_types = cols()))
       # rename columns (replace whitespace or special characters with '.')
       colnames(.data[[file$name]]) <- gsub('\\s|\\(|\\)|\\/|\\[|\\]', '.', 
                                            colnames(.data[[file$name]]))

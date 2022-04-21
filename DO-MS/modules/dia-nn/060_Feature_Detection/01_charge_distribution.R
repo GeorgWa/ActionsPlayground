@@ -62,8 +62,8 @@ init <- function() {
       scale_fill_manual(values = custom_colors)+
       scale_color_manual(values = custom_colors) + 
       guides(fill = guide_legend(override.aes = list(color = NA)), 
-             color = FALSE, 
-             shape = FALSE) 
+             color = 'none', 
+             shape = 'none') 
       
     
     

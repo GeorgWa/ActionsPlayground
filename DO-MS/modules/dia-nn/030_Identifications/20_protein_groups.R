@@ -21,7 +21,7 @@ init <- function() {
       dplyr::filter(Ms1.Area > 0) %>%
       dplyr::filter(Proteotypic == 1) %>%
       dplyr::group_by(Raw.file) %>%
-      dplyr::summarise(Identifications=n_distinct(Protein.Ids))
+      dplyr::summarise(Identifications=n_distinct(Protein.Ids), .groups = "drop")
     Proteins$Label <- 'Proteins'
     
     Proteins.Q <- plotdata %>%
@@ -29,14 +29,14 @@ init <- function() {
       dplyr::filter(Protein.Q.Value < 0.01) %>%
       dplyr::filter(Proteotypic == 1) %>%
       dplyr::group_by(Raw.file) %>%
-      dplyr::summarise(Identifications=n_distinct(Protein.Ids))
+      dplyr::summarise(Identifications=n_distinct(Protein.Ids), .groups = "drop")
     Proteins.Q$Label <- 'Proteins, q-val < 1%'
     
     PG <- plotdata %>%
       dplyr::filter(Ms1.Area > 0) %>%
       dplyr::filter(Proteotypic == 1) %>%
       dplyr::group_by(Raw.file) %>%
-      dplyr::summarise(Identifications=n_distinct(Protein.Group))
+      dplyr::summarise(Identifications=n_distinct(Protein.Group), .groups = "drop")
     PG$Label <- 'Protein Groups'
     
     PG.Q <- plotdata %>%
@@ -44,7 +44,7 @@ init <- function() {
       dplyr::filter(PG.Q.Value < 0.01) %>%
       dplyr::filter(Proteotypic == 1) %>%
       dplyr::group_by(Raw.file) %>%
-      dplyr::summarise(Identifications=n_distinct(Protein.Group))
+      dplyr::summarise(Identifications=n_distinct(Protein.Group), .groups = "drop")
     PG.Q$Label <- 'Protein Groups, q-val < 1%'
     
     plotdata <- rbind(Proteins, Proteins.Q, PG, PG.Q)

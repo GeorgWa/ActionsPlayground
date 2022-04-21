@@ -22,12 +22,11 @@ init <- function() {
       
       # subtract all label modifications, but not other modifications
       plotdata$Precursor.Id = gsub(paste0('\\Q',current_label,'\\E'),'',plotdata$Precursor.Id)
-      
     }
     
     plotdata %>% 
       group_by(Raw.file, Precursor.Id) %>% 
-      summarise(Ms1.Area = sum(Ms1.Area))
+      summarise(Ms1.Area = sum(Ms1.Area), .groups = "drop")
     
     plotdata <- dplyr::filter(plotdata, Ms1.Area>0)
     plotdata$Intensity = plotdata$Ms1.Area
@@ -65,7 +64,7 @@ init <- function() {
     
     
     plotdata <- plotdata_Intersected %>% group_by(Raw.file, Precursor.Id) %>%
-      summarize(IntAvg=mean(Intensity, na.rm = TRUE))
+      summarize(IntAvg=mean(Intensity, na.rm = TRUE), .groups = "drop")
     
     plotdata.w <- reshape2::dcast(plotdata, Precursor.Id ~ Raw.file, value = "IntAvg")
     baselineInd <- ncol(plotdata.w) + 1

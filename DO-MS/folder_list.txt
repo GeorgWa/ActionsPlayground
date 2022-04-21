@@ -10,3 +10,5 @@ wSQC_02132022_LCB41_B17_1735	TRUE	C:\temp\2022_03_18_wGW018_wGW024\wSQC_02132022
 peak_height_5_JD_comparison	FALSE	C:\temp\2022_03_18_wGW018_wGW024\peak_height_5_JD_comparison
 d13_fdr1	TRUE	/Volumes/GoogleDrive/.shortcut-targets-by-id/1uQ4exoKlaZAGnOG1iCJPzYN3ooYYZB7g/MS/Users/GW/2022_03_25_wJD1018_wJD1205_1x1x1_d13/d13_fdr1
 peak_height	TRUE	/Volumes/GoogleDrive/.shortcut-targets-by-id/1uQ4exoKlaZAGnOG1iCJPzYN3ooYYZB7g/MS/Users/GW/2022_04_09_wGW025_wGW031_Ms2_number/peak_height
+2022_04_11_yeast_ecoli_plex	FALSE	G:\.shortcut-targets-by-id\1uQ4exoKlaZAGnOG1iCJPzYN3ooYYZB7g\MS\Users\GW\2022_04_11_yeast_ecoli_plex
+diann_v_16_raw_2	TRUE	G:\.shortcut-targets-by-id\1uQ4exoKlaZAGnOG1iCJPzYN3ooYYZB7g\MS\Users\GW\test_data\diann_v_16_raw_2

@@ -20,24 +20,28 @@ init <- function() {
       dplyr::filter(Proteotypic == 1) %>%
       dplyr::group_by(Raw.file) %>%
       dplyr::summarise(Identifications = n_distinct(Protein.Ids), 
-                       Identifications.O = n_distinct(Protein.Ids[Translated.Q.Value <= 0.01]))
+                       Identifications.O = n_distinct(Protein.Ids[Translated.Q.Value <= 0.01]), 
+                       .groups = "drop")
     
     plotdata_channel <- plotdata %>%
       dplyr::filter(Proteotypic == 1) %>%
       dplyr::group_by(Raw.file,Label) %>%
       dplyr::summarise(Identifications = n_distinct(Protein.Ids), 
-                       Identifications.O = n_distinct(Protein.Ids[Translated.Q.Value <= 0.01]))
+                       Identifications.O = n_distinct(Protein.Ids[Translated.Q.Value <= 0.01]), 
+                       .groups = "drop")
     
     plotdata_I <- plotdata %>%
       dplyr::filter(Proteotypic == 1) %>%
       dplyr::group_by(Raw.file,Protein.Ids) %>%
       dplyr::summarise(Channels = n_distinct(Label),
-                       Channels.O = n_distinct(Label[Translated.Q.Value <= 0.01])) 
+                       Channels.O = n_distinct(Label[Translated.Q.Value <= 0.01]), 
+                       .groups = "drop") 
     
     plotdata_intersected <- plotdata_I %>%
       dplyr::group_by(Raw.file) %>%
       dplyr::summarise(Identifications = n_distinct(Protein.Ids[Channels == 3]),
-                       Identifications.O = n_distinct(Protein.Ids[Channels.O == 3]))
+                       Identifications.O = n_distinct(Protein.Ids[Channels.O == 3]), 
+                       .groups = "drop")
     
     # Set labels dor newly create dataframe
     plotdata_intersected$Label = "Intersected"

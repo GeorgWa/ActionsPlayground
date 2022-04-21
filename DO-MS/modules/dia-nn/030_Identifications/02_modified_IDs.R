@@ -51,7 +51,7 @@ init <- function() {
       
       plotdata_mod <- plotdata_mod %>%
         dplyr::group_by(Raw.file) %>%
-        dplyr::summarise(Identifications=n())
+        dplyr::summarise(Identifications=n(), .groups = "drop")
       
       plotdata_mod$Modification <- modsdata$name[[i]]
       
@@ -61,7 +61,7 @@ init <- function() {
 
     plotdata_total <- plotdata %>%
       dplyr::group_by(Raw.file) %>%
-      dplyr::summarise(Identifications=n())
+      dplyr::summarise(Identifications=n(), .groups = "drop")
     plotdata_total$Modification <- 'Total'
     
     outdf <- rbind(outdf, plotdata_total)
@@ -69,7 +69,7 @@ init <- function() {
     plotdata_unmod <- plotdata[plotdata$mod_sum < 1, ]
     plotdata_unmod <- plotdata_unmod %>%
       dplyr::group_by(Raw.file) %>%
-      dplyr::summarise(Identifications=n())
+      dplyr::summarise(Identifications=n(), .groups = "drop")
     plotdata_unmod$Modification <- 'Unmodified'
     outdf <- rbind(outdf, plotdata_unmod)
 

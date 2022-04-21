@@ -40,8 +40,8 @@ init <- function() {
             axis.ticks.x=element_blank()) +
       custom_theme +
       guides(fill = guide_legend(override.aes = list(color = NA)), 
-             color = FALSE, 
-             shape = FALSE) 
+             color = 'none', 
+             shape = 'none') 
 
     
     

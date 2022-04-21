@@ -29,22 +29,26 @@ init <- function() {
     plotdata_union <- plotdata %>%
       dplyr::group_by(Raw.file) %>%
       dplyr::summarise(Identifications = n_distinct(Precursor.Id), 
-                       Identifications.O = n_distinct(Precursor.Id[Translated.Q.Value <= 0.01]))
+                       Identifications.O = n_distinct(Precursor.Id[Translated.Q.Value <= 0.01]), 
+                       .groups = "drop")
   
     plotdata_channel <- plotdata %>%
       dplyr::group_by(Raw.file, Label) %>%
       dplyr::summarise(Identifications = n_distinct(Precursor.Id), 
-                       Identifications.O = n_distinct(Precursor.Id[Translated.Q.Value <= 0.01]))
+                       Identifications.O = n_distinct(Precursor.Id[Translated.Q.Value <= 0.01]), 
+                       .groups = "drop")
     
     plotdata_I <- plotdata %>%
       dplyr::group_by(Raw.file,Precursor.Id) %>%
       dplyr::summarise(Channels = n_distinct(Label),
-                       Channels.O = n_distinct(Label[Translated.Q.Value <= 0.01])) 
+                       Channels.O = n_distinct(Label[Translated.Q.Value <= 0.01]), 
+                       .groups = "drop") 
     
     plotdata_intersected <- plotdata_I %>%
       dplyr::group_by(Raw.file) %>%
       dplyr::summarise(Identifications = n_distinct(Precursor.Id[Channels == 3]),
-                       Identifications.O = n_distinct(Precursor.Id[Channels.O == 3]))
+                       Identifications.O = n_distinct(Precursor.Id[Channels.O == 3]), 
+                       .groups = "drop")
     
     # Set labels dor newly create dataframe
     plotdata_intersected$Label = "Intersected"

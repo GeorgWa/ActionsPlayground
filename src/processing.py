@@ -38,7 +38,7 @@ def generate_parser():
     
     parser.add_argument("-t","--temporary-folder", type=pathlib.Path, help="Input Raw files will be temporarilly copied to this folder. Required for use with Google drive.")
 
-    parser.add_argument("-r","--raw-file-location", type=pathlib.Path, default='', help="By default, raw files are loaded based on the File.Name column in the report.tsv. With this option, a different folder can be specified.")
+    parser.add_argument("-r","--raw-file-location", type=pathlib.Path, help="By default, raw files are loaded based on the File.Name column in the report.tsv. With this option, a different folder can be specified.")
 
     parser.add_argument("--no-feature-detection", default=False, action='store_true', help="All steps are performed as usual but Dinosaur feature detection is skipped. No features.tsv file will be generated.")
 
@@ -350,11 +350,12 @@ class FeatureDetection():
         self.experiment_files = list(set(self.report_tsv['File.Name']))
 
         # Contains a list of the raw files in the report
+        # will be converted to unix style pathlib objects
         self.experiment_files = [file.replace('\\','/') for file in self.experiment_files]
         self.experiment_files = [pathlib.Path(file) for file in self.experiment_files]
 
         # Source raw files from alternative folder
-        if self.args.raw_file_location != '':
+        if self.args.raw_file_location is not None:
             self.log('Raw files will be sourced from the specified folder')
 
             if not os.path.isdir(self.args.raw_file_location): 
@@ -365,7 +366,7 @@ class FeatureDetection():
                 self.experiment_files[i] = os.path.join(self.args.raw_file_location, file)
 
         # Raw file strings are then valaidated
-        self.log('Validating raw file locations')
+        self.log('Checking raw file locations')
         validate_path(self.experiment_files, 'DO-MS DIA feature extraction relies on the raw file locations found in the File.Name column in the report.tsv.')
         validate_filetype(self.experiment_files, 'DO-MS DIA feature extraction relies on the raw file locations found in the File.Name column in the report.tsv.')
 

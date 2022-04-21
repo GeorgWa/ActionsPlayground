@@ -11,6 +11,12 @@ init <- function() {
   
   .plotdata <- function(data, input) {
     plotdata <- data()[['features']][,c('Raw.file', 'mz', 'rtStart','charge','rtApex','rtEnd')]
+
+    # Apply retention time filter as specified in settings.yaml
+    plotdata <- plotdata %>% 
+      filter(rtStart > config[['RT.Start']]) %>% 
+      filter(rtStart < config[['RT.End']])
+
     plotdata <- dplyr::mutate(plotdata, RT.Length = (rtEnd-rtStart)*60)
     
     

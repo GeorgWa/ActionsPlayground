@@ -17,17 +17,16 @@ init <- function() {
     
     plotdata <- data()[['fill_times']]
     
-    rt_start = config[['RT.Start']] 
-    rt_end = config[['RT.End']]
+    plotdata <- plotdata %>% 
+      filter(RT.Start > config[['RT.Start']]) %>% 
+      filter(RT.Start < config[['RT.End']])
+      
     #plotdata <- as.data.frame(read_tsv(file='/Users/georgwallmann/Documents/testdaten/2022_06_24_MS2_number_wGW011-wGW017/fill_times.tsv',guess_max=1e5))
     
-    plotdata <- plotdata %>% 
-      filter(RT.Start > rt_start) %>% 
-      filter(RT.Start < rt_end) %>% 
+    plotdata <- plotdata %>%
       filter(Ms.Level > 1)
 
     num_rt_bins = 10
-    print(plotdata)
     
     rt_min = min(plotdata$RT.Start)
     rt_max = max(plotdata$RT.Start)
@@ -39,7 +38,7 @@ init <- function() {
     # calculate mean fill times
     plotdata <- plotdata %>%
       group_by(Raw.file, Ms.Level, Window.Lower, Window.Upper,  RT) %>%
-      summarise(Fill.Time = mean(Fill.Time))
+      summarise(Fill.Time = mean(Fill.Time), .groups = "drop")
     
     # Transform RT bins back to real RTs
     plotdata <- plotdata %>% 
