@@ -32,8 +32,6 @@ jobs:
     - name: Install dependencies
       run: |
         cd docs
-        ls
-        gem install 
         gem install bundler:2.0.2
         bundle _2.0.2_ install
         bundle exec build jekyll
