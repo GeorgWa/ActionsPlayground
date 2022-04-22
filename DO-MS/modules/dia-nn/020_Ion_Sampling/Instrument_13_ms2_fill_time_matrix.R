@@ -28,8 +28,8 @@ init <- function() {
 
     num_rt_bins = 10
     
-    rt_min = min(plotdata$RT.Start)
-    rt_max = max(plotdata$RT.Start)
+    rt_start = min(plotdata$RT.Start)
+    rt_end = max(plotdata$RT.Start)
     
     # Create RT column which has labels for N RT bins
     plotdata <- plotdata %>% 
