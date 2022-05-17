@@ -367,8 +367,10 @@ class FeatureDetection():
 
         # Raw file strings are then valaidated
         self.log('Checking raw file locations')
-        validate_path(self.experiment_files, 'DO-MS DIA feature extraction relies on the raw file locations found in the File.Name column in the report.tsv.')
-        validate_filetype(self.experiment_files, 'DO-MS DIA feature extraction relies on the raw file locations found in the File.Name column in the report.tsv.')
+
+        if not self.args.no_mzml_generation:
+            validate_path(self.experiment_files, 'DO-MS DIA feature extraction relies on the raw file locations found in the File.Name column in the report.tsv.')
+            validate_filetype(self.experiment_files, 'DO-MS DIA feature extraction relies on the raw file locations found in the File.Name column in the report.tsv.')
 
         self.experiment_names = [Path(path).stem for path in self.experiment_files]
 
