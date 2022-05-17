@@ -53,8 +53,7 @@ init <- function() {
       facet_wrap(~Raw.file, nrow = 1, scales = "free_x")+
       scale_fill_hue(labels=c('1', '2', '3', '>3')) + 
       labs(x='Experiment', y='Count', fill='Charge State') +
-      theme_base(input=input, show_legend=T)+
-      custom_theme +
+      theme_diann(input=input, show_legend=T)+
       scale_fill_manual(values = custom_colors)+
       scale_color_manual(values = custom_colors)+
       theme(axis.text.x=element_blank(),

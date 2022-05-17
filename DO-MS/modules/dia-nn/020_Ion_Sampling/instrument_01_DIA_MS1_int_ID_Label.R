@@ -49,10 +49,8 @@ init <- function() {
       labs(x=expression(bold('Log'[10]*' Precursor Intensity')), y='Number of Precursors') +
       scale_fill_manual(name = "", values = custom_colors)+
       scale_color_manual(name = "", values = custom_colors)+
-  
       theme(legend.position = "bottom")+
-      theme_base(input=input, show_legend=T)+
-      custom_theme 
+      theme_diann(input=input, show_legend=T)
 
     
   }

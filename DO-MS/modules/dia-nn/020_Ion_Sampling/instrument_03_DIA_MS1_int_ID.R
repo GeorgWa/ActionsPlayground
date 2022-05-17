@@ -51,8 +51,7 @@ init <- function() {
       geom_histogram(bins=50, fill=custom_colors[[6]]) + 
       coord_flip() + 
       labs(x=expression(bold('Log'[10]*' Precursor Intensity')), y='Number of Precursors') +
-      theme_base(input=input)+
-      custom_theme
+      theme_diann(input=input, show_legend=T)
   }
   
   return(list(

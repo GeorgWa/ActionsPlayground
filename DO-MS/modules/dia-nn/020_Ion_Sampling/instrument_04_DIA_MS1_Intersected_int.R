@@ -90,8 +90,7 @@ init <- function() {
       geom_vline(data=medianData, aes(xintercept = median),col=custom_colors[[1]],size=1) + 
       coord_flip() + 
       labs(x=expression(bold('Log'[10]*' Precursor Intensity')), y='Number of Precursors') +
-      theme_base(input=input)+
-      custom_theme
+      theme_diann(input=input, show_legend=T)
   }
   
   return(list(

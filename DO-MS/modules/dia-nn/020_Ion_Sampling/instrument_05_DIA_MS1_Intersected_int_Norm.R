@@ -94,8 +94,7 @@ init <- function() {
       xlim(c(-3,3))+
       coord_flip() + 
       labs(x=expression(bold('Log'[10]*' Intensity Relative to first experiment')), y='Number of Precursors') + 
-      theme_base(input=input) +
-      custom_theme
+      theme_diann(input=input, show_legend=T)
 
   }
   

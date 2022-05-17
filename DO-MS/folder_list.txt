@@ -13,3 +13,5 @@ peak_height	TRUE	/Volumes/GoogleDrive/.shortcut-targets-by-id/1uQ4exoKlaZAGnOG1i
 2022_04_11_yeast_ecoli_plex	FALSE	G:\.shortcut-targets-by-id\1uQ4exoKlaZAGnOG1iCJPzYN3ooYYZB7g\MS\Users\GW\2022_04_11_yeast_ecoli_plex
 diann_v_16_raw_2	TRUE	G:\.shortcut-targets-by-id\1uQ4exoKlaZAGnOG1iCJPzYN3ooYYZB7g\MS\Users\GW\test_data\diann_v_16_raw_2
 2022_02_24_MS2_number_wGW011-wGW017	TRUE	C:\temp\2022_02_24_MS2_number_wGW011-wGW017
+diann_v_16_raw	FALSE	G:\.shortcut-targets-by-id\1uQ4exoKlaZAGnOG1iCJPzYN3ooYYZB7g\MS\Users\GW\test_data\diann_v_16_raw
+diann_v_16_raw_2_subset	FALSE	G:\.shortcut-targets-by-id\1uQ4exoKlaZAGnOG1iCJPzYN3ooYYZB7g\MS\Users\GW\test_data\diann_v_16_raw_2_subset

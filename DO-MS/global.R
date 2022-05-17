@@ -1,4 +1,4 @@
-version <- '2.0.b4'
+version <- '2.0.b5'
 
 # check R version. required R >= 3.5.0
 # if(as.numeric(R.Version()$major) < 4) {
@@ -198,6 +198,70 @@ theme_base <- function(input=list(), show_legend=F) {
       panel.grid.minor = element_blank()
     )
   }
+  
+  return(.theme)
+}
+
+theme_diann <- function(input=list(), show_legend=F) {
+  
+  # default values
+  axis_font_size <- ifelse(is.null(input[['figure_axis_font_size']]), 
+                           12, input[['figure_axis_font_size']])
+  title_font_size <- ifelse(is.null(input[['figure_title_font_size']]),
+                            16, input[['figure_title_font_size']])
+  facet_font_size <- ifelse(is.null(input[['figure_facet_font_size']]),
+                            12, input[['figure_facet_font_size']])
+  
+  show_grid <- ifelse(is.null(input[['figure_show_grid']]),
+                      TRUE, input[['figure_show_grid']])
+  
+  .theme <- theme(text = element_text(face="bold", size=12, colour = "grey40"),
+    panel.grid.major = element_line(colour = "grey80", size = 0.4),
+    axis.ticks = element_line(colour = "grey80", size = 0.4),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    #panel.background = element_rect(fill = NA),
+    axis.text = element_text(colour = "grey40", face = "bold", size = axis_font_size),
+    axis.text.x = element_text(angle=45, hjust=1, margin=margin(r=45)),
+    axis.line = element_blank(),
+    axis.title=element_text(size=title_font_size, colour = "grey20"),
+    strip.background = element_rect(colour = NA, fill = "grey90"),
+    strip.text = element_text(colour = "grey20", face = "bold", size = facet_font_size),
+    legend.text = element_text(colour = "grey40", face = "bold", size = 12),
+    legend.title = element_text(colour = "grey40", face = "bold", size = 12),
+    panel.background = element_rect(fill="white", colour = "white")
+  )
+  if(!show_legend) {
+    .theme <- .theme + theme(legend.position="none")
+  }
+  
+  if(show_grid) {
+    .theme <- .theme + theme(
+      panel.grid.major = element_line(size=0.25, linetype="solid", color="lightgrey"), 
+      panel.grid.minor = element_line(size=0.25, linetype="solid", color="lightgrey")
+    )
+  } else {
+    .theme <- .theme + theme(
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank()
+    )
+  }
+  
+  return(.theme)
+  
+  .theme <- .theme + theme(text = element_text(face="bold", size=12, colour = "grey40"),
+                          panel.grid.major = element_line(colour = "grey80", size = 0.4),
+                          axis.ticks = element_line(colour = "grey80", size = 0.4),
+                          panel.grid.minor.x = element_blank(),
+                          panel.grid.minor = element_blank(),
+                          #panel.background = element_rect(fill = NA),
+                          axis.text = element_text(colour = "grey40", face = "bold", size = axis_font_size),
+                          axis.line = element_blank(),
+                          axis.title=element_text(size=title_font_size, colour = "grey20"),
+                          strip.background = element_rect(colour = NA, fill = "grey90"),
+                          strip.text.x = element_text(colour = "grey20", face = "bold", size = facet_font_size),
+                          legend.text = element_text(colour = "grey40", face = "bold", size = 12),
+                          legend.title = element_text(colour = "grey40", face = "bold", size = 12))
   
   return(.theme)
 }
@@ -461,19 +525,7 @@ translate_diann_channel_format <- function(.input_df, columns = c("Precursor.Id"
 }
 
 custom_colors = c("#e8411c", "#f7c12a", "#329ebf",'#51c473','#c355d4','#6e6e6e',"#e8411c", "#f7c12a", "#329ebf",'#51c473','#c355d4','#6e6e6e')
-custom_theme = theme(text = element_text(face="bold", size=12, colour = "grey40"),
-                     panel.grid.major = element_line(colour = "grey80", size = 0.4),
-                     axis.ticks = element_line(colour = "grey80", size = 0.4),
-                     panel.grid.minor.x = element_blank(),
-                     panel.grid.minor = element_blank(),
-                     panel.background = element_rect(fill = NA),
-                     axis.text = element_text(colour = "grey40", face = "bold", size = 12),
-                     axis.line = element_blank(),
-                     axis.title=element_text(size=12, colour = "grey20"),
-                     strip.background = element_rect(colour = NA, fill = "grey90"),
-                     strip.text.x = element_text(colour = "grey20", face = "bold", size = 12),
-                     legend.text = element_text(colour = "grey40", face = "bold", size = 12),
-                     legend.title = element_text(colour = "grey40", face = "bold", size = 12))
+custom_theme = 
 
 separate_channel_info <- function(df){
   channels <- config[['channels']]

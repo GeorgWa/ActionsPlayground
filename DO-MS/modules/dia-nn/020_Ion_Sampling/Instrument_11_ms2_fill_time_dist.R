@@ -37,8 +37,7 @@ init <- function() {
       labs(x='Fill times in ms', y='Scans') +
       geom_histogram(aes(x=Fill.Time), bins=15, fill=custom_colors[[6]])+
       labs(x='Fill times in ms', y=' Number of Scans') + 
-      theme_base(input=input, show_legend=T) +
-      custom_theme
+      theme_diann(input=input, show_legend=T)
       
   }
   

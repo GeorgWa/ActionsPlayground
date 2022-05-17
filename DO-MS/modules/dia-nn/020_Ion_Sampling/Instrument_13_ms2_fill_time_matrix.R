@@ -69,8 +69,7 @@ init <- function() {
       scale_fill_viridis(discrete=FALSE) +
       labs(y='m/z', x='Retention Time in minutes', fill='Fill time (ms)') +
       theme(legend.position = "bottom",legend.key.width = unit(2.5, "cm"), axis.text.y = element_text(angle = 45, vjust = 0.5, hjust=1, size=10))+
-      custom_theme+
-      theme_base(input=input, show_legend=T)
+      theme_diann(input=input, show_legend=T)
       
   }
   

@@ -54,8 +54,7 @@ init <- function() {
       geom_line(aes(y = mean, x = RT.Mean), color = custom_colors[[1]], size = 1) +
       facet_wrap(~Raw.file, nrow = 1, scales = "free_x") + 
       labs(y='Fill Times in ms', x='Retention Time in minutes') +
-      theme_base(input=input, show_legend=T)+
-      custom_theme 
+      theme_diann(input=input, show_legend=T)
       
   }
   

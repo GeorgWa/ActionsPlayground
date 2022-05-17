@@ -743,19 +743,16 @@ shinyServer(function(input, output, session) {
     
     for(file in config[['input_files']]) {
       
-      
        if('Raw.file' %in% colnames(f_data[[file$name]]))  {
         
         # make a copy of the raw file column
         f_data[[file$name]]$Raw.file.orig <- f_data[[file$name]]$Raw.file
         
-
         
-        nlevels <- levels(f_data[[file$name]]$Raw.file)
+        olevels <- levels(f_data[[file$name]]$Raw.file)
         nlabels <- file_levels()
+        nlevels <- as.vector(unlist(isolate(raw_files()), use.names=FALSE))
         
-        print(paste('file: ', file$name))
-        print(nlevels)
         
         # if labels are still not loaded or defined yet, then default them to the levels
         if(is.null(nlabels) | length(nlabels) < 1 | length(nlabels) != length(nlevels)) {

@@ -42,8 +42,7 @@ init <- function() {
       labs(y='m/z', x='Retention Time in minutes') +
       scale_color_manual(name = "", values = c( "TIC weighted m/z" = custom_colors[[1]]))+
       theme(legend.position = "bottom")+
-      theme_base(input=input, show_legend=T)+
-      custom_theme 
+      theme_diann(input=input, show_legend=T)
       
   }
   
