@@ -40,11 +40,11 @@ init <- function() {
     ggplot(plotdata, aes(x=Label, y=n, fill=Label, colour=Label)) +
       geom_bar(stat="identity", alpha=0.7) +
       facet_wrap(~Raw.file, nrow = 1, scales = "free_x")+
-      theme_base(input=input)+
-      theme(axis.text.x = element_blank(), axis.ticks = element_blank())+
       labs(x='', y='Number of Precursors', fill='Quantification', colour='Quantification') +
-      custom_theme +
-      theme(legend.position = "bottom") +
+      theme_diann(input=input, show_legend=T) +
+      theme(legend.position = "bottom",
+            axis.text.x = element_blank(), 
+            axis.ticks = element_blank()) +
       scale_fill_manual(values = custom_colors)+
       scale_color_manual(values = custom_colors)
     

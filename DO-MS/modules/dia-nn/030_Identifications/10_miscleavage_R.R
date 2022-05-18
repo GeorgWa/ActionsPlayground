@@ -44,8 +44,7 @@ init <- function() {
       geom_bar(stat="identity", alpha=0.7) +
       labs(x='Missed R Cleavages', y='Count') +
       theme_base(input=input, show_legend=T)+
-      custom_theme +
-      theme(legend.position = "bottom")+
+      theme_diann(input=input, show_legend=T) +
       scale_fill_manual(name = "", values = custom_colors)+
       scale_color_manual(name = "", values = custom_colors)+
       theme(axis.text.x=element_blank(),

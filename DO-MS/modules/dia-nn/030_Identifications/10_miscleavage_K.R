@@ -42,8 +42,7 @@ init <- function() {
       facet_wrap(~Raw.file, nrow = 1, scales = "free_x") + 
       geom_bar(stat="identity", alpha=0.7) +
       labs(x='Missed K Cleavages', y='Count') +
-      theme_base(input=input, show_legend=T)+
-      custom_theme +
+      theme_diann(input=input, show_legend=T) +
       theme(legend.position = "bottom")+
       scale_fill_manual(name = "", values = custom_colors)+
       scale_color_manual(name = "", values = custom_colors)+

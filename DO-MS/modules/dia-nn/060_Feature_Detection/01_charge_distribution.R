@@ -55,10 +55,9 @@ init <- function() {
                stat='identity', position='dodge2', alpha=0.7) +
       facet_wrap(~Raw.file, nrow = 1, scales = "free_x") +
       labs(x='Charge State', y='Count', fill='Charge State') +
-      theme_base(input=input, show_legend=T)+
       theme(axis.text.x=element_blank(),
             axis.ticks.x=element_blank()) +
-      custom_theme +
+      theme_diann(input=input, show_legend=T) +
       scale_fill_manual(values = custom_colors)+
       scale_color_manual(values = custom_colors) + 
       guides(fill = guide_legend(override.aes = list(color = NA)), 

@@ -105,14 +105,9 @@ init <- function() {
     ggplot(plotdata)+
       geom_point(data=plotdata, aes(x=X, y=Jacc, color=Order), size=6)+
       facet_wrap(~Raw.file, nrow = 1, scales = "free_x") + 
-      
-      
       scale_color_manual(name = "Comparison", values = c(custom_colors[[3]],custom_colors[[1]]))+
-    
-    
       theme(legend.position = "bottom")+
-      theme_base(input=input, show_legend=T)+
-      custom_theme +
+      theme_diann(input=input, show_legend=T) +
       theme(axis.text.x = element_blank())+
       xlim(-1,2)+
       ylab("Jaccard Index")+

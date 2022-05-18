@@ -39,8 +39,7 @@ init <- function() {
       coord_flip() + 
       xlim(0, maxScans) +
       labs(x='Number of Scans', y='Features identified') +
-      theme_base(input=input) +
-      custom_theme
+      theme_diann(input=input, show_legend=T)
 
   }
   

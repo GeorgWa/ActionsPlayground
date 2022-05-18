@@ -32,13 +32,11 @@ init <- function() {
     
     ggplot(plotdata, aes(x=rtApex, color = Category)) + 
       facet_wrap(~Raw.file, nrow = 1, scales = "free_x") + 
-      
       stat_bin(aes(y=..count..), size = 0.8, bins=100,position = "identity",geom="step")+
       coord_flip() + 
       labs(x='Retention Time (min)', y='Number of Precursors') +
-      theme_base(input=input) +
       scale_color_manual(values=c(custom_colors[[1]], custom_colors[[6]]))+
-      custom_theme
+      theme_diann(input=input, show_legend=T)
     
   }
 

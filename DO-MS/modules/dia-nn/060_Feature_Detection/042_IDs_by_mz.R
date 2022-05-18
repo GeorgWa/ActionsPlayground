@@ -31,9 +31,8 @@ init <- function() {
       stat_bin(aes(y=..count..), size = 0.8, bins=100,position = "identity",geom="step")+
       coord_flip() + 
       labs(x='m/z', y='Number of Precursors') +
-      theme_base(input=input) +
-      scale_color_manual(values=c(custom_colors[[1]], custom_colors[[6]]))+
-      custom_theme
+      theme_diann(input=input, show_legend=T) +
+      scale_color_manual(values=c(custom_colors[[1]], custom_colors[[6]]))
     
   }
   

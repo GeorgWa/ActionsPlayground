@@ -93,7 +93,7 @@ init <- function() {
     
     ggplot(plotdata, aes(x=Label, y=logratio)) + 
       facet_wrap(~Raw.file, nrow = 1, scales = "free_x") + 
-      custom_theme +
+      theme_diann(input=input, show_legend=T) +
       geom_boxplot()+
       ylim(-2.5,1)+
       labs(x='', y='log10 Intensity Ratio')

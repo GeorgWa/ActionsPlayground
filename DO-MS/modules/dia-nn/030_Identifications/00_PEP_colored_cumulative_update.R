@@ -76,17 +76,14 @@ init <- function() {
     ggplot(plotdata, aes(x=pep, color=Raw.file, y=cy, group=Raw.file)) + 
       geom_line(size = input$figure_line_width) +
       scale_colour_manual(name='Experiment', values=cc, labels=levels(plotdata$Raw.file)) +
-      
-      
       coord_flip() + 
       scale_x_log10(limits=c(.000009,max(plotdata$pep)), breaks=c(.00001,.0001,.001,.01,.1), 
                     labels=scales::trans_format('log10', scales::math_format(10^.x))) + 
-      theme_base(input=input) +
-      theme(legend.position='right') + 
-      theme(legend.key=element_rect(fill='white')) +
       xlab('PEP') + ylab('Number of Precursors') +
-      custom_theme + 
-      theme(panel.grid.major.x = element_line(colour = "grey80", size = 0.4))
+      theme_diann(input=input, show_legend=T) +
+      theme(panel.grid.major.x = element_line(colour = "grey80", size = 0.4), 
+            legend.position='right',
+            legend.key=element_rect(fill='white'))
     
   }
   

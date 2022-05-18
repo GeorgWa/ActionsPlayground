@@ -522,7 +522,6 @@ shinyServer(function(input, output, session) {
     # sort the raw files
     #.raw_files <- sort(.raw_files)
     
-    print(.raw_files)
     .raw_files
   })
   

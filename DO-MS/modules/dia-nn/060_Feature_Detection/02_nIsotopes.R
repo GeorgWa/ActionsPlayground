@@ -33,12 +33,11 @@ init <- function() {
                stat='identity', position='dodge2', alpha=0.7) +
       facet_wrap(~Raw.file, nrow = 1, scales = "free_x") + 
       labs(x='Number of Isotopes', y='Features identified', fill='Isotopes') +
-      theme_base(input=input, show_legend=T)+
       scale_fill_manual(values = custom_colors)+
       scale_color_manual(values = custom_colors)+
       theme(axis.text.x=element_blank(),
             axis.ticks.x=element_blank()) +
-      custom_theme +
+      theme_diann(input=input, show_legend=T) +
       guides(fill = guide_legend(override.aes = list(color = NA)), 
              color = 'none', 
              shape = 'none') 

@@ -90,10 +90,9 @@ init <- function() {
     ggplot(plotdata, aes(x=Modification, y=Identifications, fill=Modification, colour=Modification)) +
       geom_bar(stat="identity", alpha=0.7) +
       facet_wrap(~Raw.file, nrow = 1, scales = "free_x")+
-      theme_base(input=input)+
       theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
       labs(x='Modification', y='Number of Precursors') +
-      custom_theme +
+      theme_diann(input=input, show_legend=T) +
       scale_fill_manual(values = custom_colors)+
       scale_color_manual(values = custom_colors)
     

@@ -42,8 +42,7 @@ init <- function() {
       geom_histogram(bins=50, fill=custom_colors[[6]]) + 
       coord_flip() + 
       labs(x='Retention Lengths at base (sec)', y='Features identified') +
-      theme_base(input=input) +
-      custom_theme
+      theme_diann(input=input, show_legend=T)
     
   }
   

@@ -80,9 +80,8 @@ init <- function() {
       geom_bar(stat="identity", alpha=0.7) +
       facet_wrap(~Raw.file, nrow = 1, scales = "free_x")+
       labs(x='', y='Number of Precursors') +
-      theme_base(input=input)+
+      theme_diann(input=input, show_legend=T) +
       theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
-      custom_theme +
       scale_fill_manual(values = c(custom_colors[[6]],custom_colors[[1]],custom_colors[[2]],custom_colors[[3]],custom_colors[[6]]))+
       scale_color_manual(values = c(custom_colors[[6]],custom_colors[[1]],custom_colors[[2]],custom_colors[[3]],custom_colors[[6]]))
   }
