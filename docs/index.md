@@ -12,6 +12,7 @@ permalink: /
 <u>D</u>ata-Driven <u>O</u>ptimization of <u>M</u>ass <u>S</u>pectrometry Methods
 {: .fs-6 .fw-300}
 
+![Python package](https://github.com/SlavovLab/DO-MS-DIA/actions/workflows/python-package.yml/badge.svg)(https://github.com/SlavovLab/DO-MS-DIA/actions/workflows/python-package.yml)
 ![GitHub release](https://img.shields.io/github/release/SlavovLab/DO-MS.svg)
 ![GitHub](https://img.shields.io/github/license/SlavovLab/DO-MS.svg)
 
